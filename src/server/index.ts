@@ -4,17 +4,14 @@ import * as express from 'express'
 import * as logger from 'morgan'
 import * as path from 'path'
 
-import { DB, MODELS_DIR, ROUTES_DIR } from '../var/config'
+import { MODELS_DIR, ROUTES_DIR } from '../var/config'
 import { globFiles } from '../helpers'
-import connect from '../database'
 
 const app: express.Express = express()
 
 for (const model of globFiles(MODELS_DIR)) {
   require(path.resolve(model))
 }
-
-DB && connect(DB)
 
 app.set('views', path.join(__dirname, '../../src/views'))
 app.set('view engine', 'pug')
