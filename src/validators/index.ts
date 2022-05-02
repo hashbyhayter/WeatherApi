@@ -19,9 +19,9 @@ export default class IndexValidator {
     }
     
     if (!this.dateFormat.test(req.query.start.toString()) || !this.dateFormat.test(req.query.end.toString())){
-    valid.valid = false;
-    valid.errors.push('Incorrect date format used, use yyyy-MM-dd.');
-    return valid;
+        valid.valid = false;
+        valid.errors.push('Incorrect date format used, use yyyy-MM-dd');
+        return valid;
     }
     
     let start = new Date(req.query.start.toString());
@@ -32,21 +32,19 @@ export default class IndexValidator {
 
     if (start > end){
         valid.valid = false;
-        valid.errors.push('Start date can not be after date.');
-        return valid;
+        valid.errors.push('Start date can not be after the end date');
     }
 
     if (start < earliestDate){
         valid.valid = false;
-        valid.errors.push(`Start date can not be before ${latestDate.toDateString()}`);
-        return valid;
+        valid.errors.push(`Start date can not be before ${earliestDate.toDateString()}`);
     }
 
     if (end > latestDate){
         valid.valid = false;
         valid.errors.push(`End date can not be after ${latestDate.toDateString()}`);
-        return valid;
     }
+
     return valid;
   }
 

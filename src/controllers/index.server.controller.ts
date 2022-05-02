@@ -9,7 +9,7 @@ export default class IndexController {
   public weather = (req: Request, res: Response, next: Function): void => {
     let modelValid = this.validator.validateWeatherRequest(req);
     if (!modelValid.valid) {
-      res.status(400).send(modelValid.errors[0]);
+      res.status(400).send(modelValid.errors.join('\n'));
       return;
     }
 
