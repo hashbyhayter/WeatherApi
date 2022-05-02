@@ -20,6 +20,8 @@ export default class IndexController {
     let start = new Date(req.query.start.toString());
     let end = new Date(req.query.end.toString());
     let earliestDate = new Date(2008, 6, 1);
+    let now = new Date();
+    let latestDate = new Date(`${now.getFullYear()}-${this.addLeadingZeros(now.getMonth()+1)}-${this.addLeadingZeros(now.getDate())}`);
 
     if (start > end){
       res.status(400).send('Start date can not be after date.');
@@ -27,11 +29,19 @@ export default class IndexController {
     }
 
     if (start < earliestDate){
-      res.status(400).send('Start date can not be before 2008-07-01');
+      res.status(400).send(`Start date can not be before 2008-07-01 ${latestDate.toDateString()}`);
       return;
     }
+
+    if (end > latestDate){
+      res.status(400).send(`End date can not be after ${latestDate.toDateString()}`);
+      return;
+    }
+
     this.lib.getWeather(req.params.postcode, start, end).then((weatherData) => {
       res.status(200).send(weatherData);
     });
   }
+
+  private addLeadingZeros = (number: number) => number.toString().padStart(2, '0');
 }
