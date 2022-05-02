@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { API_KEY_WEATHERWORLD } from '../var/config';
 
-interface WeatherData {
+export interface WeatherData {
     description: string,
     temperature: number,
     date: Date

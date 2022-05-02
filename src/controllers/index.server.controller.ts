@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import WeatherWorld from 'weather-world';
+import WeatherWorld, { WeatherData } from 'weather-world';
 import { database }  from '../database/index';
 
 export default class IndexController {
@@ -44,10 +44,56 @@ export default class IndexController {
       return;
     }
 
-    this.api.getWeatherData(req.params.postcode, start, end)
-      .then((x) => {
-        res.status(200).send(x);
-      });
+    database('locations').where({
+      postcode: req.params.postcode
+    })
+    .select('locationID')
+    .then((locationRecords) => {
+      if(locationRecords.length > 0) {
+        let dayInMilliSeconds = 1000 * 3600 * 24;
+        let searchEnd = new Date(end.getTime() + dayInMilliSeconds - 1000);
+        database('weather')
+          .innerJoin('locations', 'locations.locationID', 'weather.locationID')
+          .where({ postcode: 'BS16UW' })
+          .whereBetween('date', [start, searchEnd])
+          .orderBy('date', "asc")
+          .then((results) => {
+            let endDate = new Date(end.getTime() + dayInMilliSeconds);
+            let numDays = ((endDate.getTime() - start.getTime()) / dayInMilliSeconds);
+            let expectedNumberOfRecords = numDays * 8;
+
+            // we have all the records return
+            if(results.length === expectedNumberOfRecords) {
+              res.status(200).send(results.map((x): WeatherData => ({
+                date: x.date,
+                temperature: x.temperature,
+                description: x.description
+              })));
+            } else {
+              this.api.getWeatherData(req.params.postcode, start, end)
+                .then((weatherData) => {
+                  let mappedResults = weatherData.map((x) => ({...x, locationId: locationRecords[0].locationId}));
+                  database('weather').insert(mappedResults).then(() => {
+                    res.status(200).send(weatherData);
+                  });
+                });
+            }
+          });
+      } else {
+        this.api.getWeatherData(req.params.postcode, start, end)
+        .then((weatherData) => {
+          database('locations')
+            .returning('locationID')
+            .insert({postcode: req.params.postcode}).then((y: any[]) => {
+              let locationId: number = y[0].locationID;
+              let mappedResults = weatherData.map((x) => ({...x, locationId}));
+              database('weather').insert(mappedResults).then(() => {
+                res.status(200).send(weatherData);
+              });
+            });
+        });
+      }
+    });
   }
 
   public msg(req: Request, res: Response): void {
