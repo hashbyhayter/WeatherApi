@@ -72,7 +72,7 @@ export default class IndexController {
             } else {
               this.api.getWeatherData(req.params.postcode, start, end)
                 .then((weatherData) => {
-                  let mappedResults = weatherData.map((x) => ({...x, locationId: locationRecords[0].locationId}));
+                  let mappedResults = weatherData.map((x) => ({...x, locationID: locationRecords[0].locationID}));
                   database('weather').insert(mappedResults).then(() => {
                     res.status(200).send(weatherData);
                   });
@@ -85,8 +85,8 @@ export default class IndexController {
           database('locations')
             .returning('locationID')
             .insert({postcode: req.params.postcode}).then((y: any[]) => {
-              let locationId: number = y[0].locationID;
-              let mappedResults = weatherData.map((x) => ({...x, locationId}));
+              let locationID: number = y[0].locationID;
+              let mappedResults = weatherData.map((x) => ({...x, locationID}));
               database('weather').insert(mappedResults).then(() => {
                 res.status(200).send(weatherData);
               });
